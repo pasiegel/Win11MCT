@@ -1,5 +1,5 @@
 Not just an Universal MediaCreationTool wrapper script with ingenious support for business editions,  
-<img src="preview.png">  
+
 A powerful yet simple windows 10 / 11 deployment automation tool as well!  
 
 Presets  
