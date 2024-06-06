@@ -3,7 +3,7 @@ MediaCreationTool wrapper script with support for business editions,
 A simple windows 10 / 11 deployment automation tool
 
 
-![alt text]([http://url/to/img.png](https://raw.githubusercontent.com/pasiegel/Win11MCT/main/preview.png)
+
 
 Presets  
 -------  
