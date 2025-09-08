@@ -3,6 +3,7 @@
 ::# Get 11 on 'unsupported' PC via Windows Update or mounted ISO (no patching needed)
 ::# if WU is stuck use windows_update_refresh.bat; Beta/Dev/Canary needs OfflineInsiderEnroll
 ::# V13: skip 2nd tpm check on Canary iso; no Server label; future proofing; tested with 26010 iso, wu and wu repair version
+::# bypass 24H2 TPM & CPU Requuirement
 
 @echo off & title get 11 on 'unsupported' PC || AveYo 2023.12.07
 if /i "%~f0" neq "%SystemDrive%\Scripts\get11.cmd" goto setup
@@ -76,3 +77,4 @@ exit /b
 
 '@); $0 = "$env:temp\Skip_TPM_Check_on_Dynamic_Update.cmd"; ${(=)||} -split "\r?\n" | out-file $0 -encoding default -force; & $0
 # press enter
+
