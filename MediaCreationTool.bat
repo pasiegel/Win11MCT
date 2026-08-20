@@ -44,12 +44,12 @@ set OPTIONS=%OPTIONS% /Telemetry Disable /CompactOS Disable
 ::# comment to not unhide Enterprise for 1709+ in products.xml
 set /a UNHIDE_BUSINESS=1
 
-::# comment to not insert Enterprise esd links for 1607,1703 or update links for 1909,2004,20H2,21H2,22H2,11_21H2,11_22H2,11_23H2,11_24H2 in products.xml
+::# comment to not insert Enterprise esd links for 1607,1703 or update links for 1909,2004,20H2,21H2,22H2,11_21H2,11_22H2,11_23H2,11_24H2,11_25H2 in products.xml
 set /a INSERT_BUSINESS=1
 
-::# MCT Version choice dialog items and default-index [11_24H2]
-set VERSIONS=1507,1511,1607,1703,1709,1803,1809,1903,1909,20H1,20H2,21H1,21H2,22H2,11_21H2,11_22H2,11_23H2,11_24H2
-set /a dV=17
+::# MCT Version choice dialog items and default-index [11_25H2]
+set VERSIONS=1507,1511,1607,1703,1709,1803,1809,1903,1909,20H1,20H2,21H1,21H2,22H2,11_21H2,11_22H2,11_23H2,11_24H2,11_25H2
+set /a dV=19
 
 ::# MCT Preset choice dialog items and default-index [Select in MCT]
 set PRESETS=^&Auto Upgrade,Auto ^&ISO,Auto ^&USB,^&Select,MCT ^&Defaults
@@ -66,7 +66,7 @@ set "OS_ARCH=x64" & if "%PROCESSOR_ARCHITECTURE:~-2%" equ "86" if not defined PR
 
 ::# parse MCT choice from script name or commandline - accepts both formats: 1909 or 19H2 etc.
 for %%V in (1.1507 2.1511 3.1607 4.1703 5.1709 6.1803 7.1809 8.1903 8.19H1 9.1909 9.19H2 10.2004 10.20H1 11.2009 11.20H2 12.2104
- 12.21H1 13.2109 13.21H2 14.2210 14.22H2 15.2110 15.11_21H2 16.2209 16.11_22H2 17.2310 17.11_23H2 18.2409 18.11_24H2) do for %%s in (%MCT% %~n0 %*) do if /i %%~xV equ .%%~s set "MCT=%%~nV" & set "VID=%%~s"
+ 12.21H1 13.2109 13.21H2 14.2210 14.22H2 15.2110 15.11_21H2 16.2209 16.11_22H2 17.2310 17.11_23H2 18.2409 18.11_24H2 19.2509 19.11_25H2) do for %%s in (%MCT% %~n0 %*) do if /i %%~xV equ .%%~s set "MCT=%%~nV" & set "VID=%%~s"
 if defined MCT if not defined VID set "MCT="
 
 ::# parse AUTO from script name or commandline - starts unattended upgrade / in-place repair / cross-edition
@@ -141,6 +141,13 @@ if %MCT%0 lss 1 if %PRE%0 gtr 1 call :choices MCT "%VERSIONS%" %dV% "MCT Version
 if %MCT%0 gtr 1 if %PRE%0 lss 1 call :choices PRE "%PRESETS%"  %dP% "MCT Preset"  11 white 0x005a9e 320
 if %MCT%0 gtr 1 if %PRE%0 lss 1 goto choice-0 = cancel
 goto choice-%MCT%
+
+:choice-19
+set "VER=26200" & set "VID=11_25H2" & set "CB=26200.9168.260809-0632.25h2_ge_release_svc_refresh" & set "CT=2026/08/" & set "CC=2.1"
+::# CB/CT above are just a point-in-time label (confirmed live 2026-08-20) - not load-bearing, the real cab is always fetched fresh
+set "CAB=FETCH_25H2"
+set "EXE=https://download.microsoft.com/download/0a8b07d9-a3bf-47b9-b71b-8e13354cec88/MediaCreationTool.exe"
+goto process ::# windows 11 25H2 - enablement package on 24H2 base; products.cab has no static link, fetched live (see FETCH_25H2_CAB)
 
 :choice-18
 set "VER=26100" & set "VID=11_24H2" & set "CB=26100.4349.250607-1500.ge_release_svc_refresh" & set "CT=2025/06/" & set "CC=2.0"
@@ -369,6 +376,7 @@ if %VER% geq 22000 (set X=11& set VIS=21H2) else (set X=10& set VIS=%VID%)
 if %VER% geq 22621 (set X=11& set VIS=22H2)
 if %VER% geq 22631 (set X=11& set VIS=23H2)
 if %VER% geq 26100 (set X=11& set VIS=24H2)
+if %VER% geq 26200 (set X=11& set VIS=25H2)
 
 ::# refresh screen
 cls & <"%~f0" (set /p _=&for /l %%s in (1,1,20) do set _=& set/p _=& call echo;%%_%%)
@@ -381,7 +389,7 @@ echo;
 ::# download MCT and CAB / XML - new snippet to try via bits, net, certutil, and insecure/secure
 if defined EXE echo;%EXE% & call :DOWNLOAD "%EXE%" MediaCreationTool%VID%.exe
 if defined XML echo;%XML% & call :DOWNLOAD "%XML%" products%VID%.xml
-if defined CAB echo;%CAB% & call :DOWNLOAD "%CAB%" products%VID%.cab
+if "%CAB%" equ "FETCH_25H2" (echo;Fetching 25H2 products.cab from Microsoft Update Metadata Service & call :FETCH_25H2_CAB) else if defined CAB echo;%CAB% & call :DOWNLOAD "%CAB%" products%VID%.cab
 if exist products%VID%.xml copy /y products%VID%.xml products.xml >nul 2>nul
 if exist products%VID%.cab del /f /q products%VID%.xml >nul 2>nul
 if exist products%VID%.cab expand.exe -R products%VID%.cab -F:* . >nul 2>nul
@@ -913,6 +921,37 @@ function DOWNLOAD ($u, $f, $p = (get-location).Path) {
   }
   if (([IO.FileInfo]$file).Exists) {return}; write-host -fore Yellow " $f download failed "
 } #:DOWNLOAD:# try download url via bits, net, and http/https - snippet by AveYo, 2021
+
+::--------------------------------------------------------------------------------------------------------------------------------
+#:FETCH_25H2_CAB:#  [PARAMS] none - reads %VID% for output filename, %LANGCODE%/%MEDIA_LANGCODE% for region
+set ^ #=;$f0=[io.file]::ReadAllText($env:0); $0=($f0-split '#\:FETCH_25H2_CAB\:' ,3)[1]; $1=$env:1-replace'([`@$])','`$1'; iex($0+$1)
+set ^ #=& set "0=%~f0"& set 1=;FETCH_25H2_CAB %*& powershell -nop -c "%#%"& exit /b %errorcode%
+function FETCH_25H2_CAB {
+  [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 -bor [Net.SecurityProtocolType]::Tls13
+  $uri = 'https://fe3.delivery.mp.microsoft.com/UpdateMetadataService/updates/search/v1/bydeviceinfo'
+  $output = (get-location).Path + "\products$env:VID.cab"; $ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) MediaCreationTool/10.0'
+  $lc = $env:LANGCODE; if ([string]::IsNullOrWhiteSpace($lc)) {$lc = $env:MEDIA_LANGCODE}
+  if ([string]::IsNullOrWhiteSpace($lc)) {$lc = (Get-Culture).Name}
+  try { $parts = $lc -split '-'; if ($parts.Length -ge 2 -and $parts[1].Length -ge 2) {$country = $parts[1].Substring(0,2).ToUpperInvariant()}
+    else {$country = ([Globalization.RegionInfo]$lc).TwoLetterISORegionName} } catch { $country = 'US' }
+  $attrs = @('MediaBranch=br_release','App=Setup360','LCUVersion=10.0.28000.1340','OfflineAttributesOnly=0','MediaVersion=10.0.28000.1340',
+    'AppVer=10.0','PreviewBuilds=1','CompositionEditionId=Enterprise','CurrentBranch=br_release','OSArchitecture=AMD64',
+    'InstallationType=Client','FlightingBranchName=CanaryChannel','DUInternal=0','FlightRing=External','BuildFlighting=1',
+    'HotPatchEligible=0','OSSKUId=48',"IsoCountryShortCode=$country",'OSVersion=10.0.26100.1','AttrDataVer=338',
+    'EditionId=Professional','DUScan=1') -join ';'
+  $body = @{Products='PN=Windows.Products.Cab.amd64&V=26100.0.0.0'; DeviceAttributes=$attrs} | ConvertTo-Json -Compress
+  $headers = @{'Content-Type'='application/json'; 'Accept'='*/*'; 'User-Agent'=$ua}
+  try {
+    write-host "Fetching 25H2 catalog for region $country ..."
+    $r = Invoke-RestMethod -Uri $uri -Method Post -Headers $headers -Body $body -TimeoutSec 30 -ea Stop
+    $url = $null
+    if ($r -is [array] -and $r.Count -gt 0 -and $r[0].FileLocations) {$url = $r[0].FileLocations[0].Url}
+    elseif ($r.FileLocations) {$url = $r.FileLocations[0].Url}
+    elseif ($r.Updates -and $r.Updates[0].FileLocations) {$url = $r.Updates[0].FileLocations[0].Url}
+    if (-not $url) {write-host -fore Yellow ' 25H2 catalog lookup returned no download url'; return}
+    Invoke-WebRequest -Uri $url -Headers @{'User-Agent'=$ua;'Accept'='*/*'} -OutFile $output -ea Stop
+  } catch { write-host -fore Yellow " 25H2 CAB fetch failed: $_" }
+} #:FETCH_25H2_CAB:#  fetch live 25H2 products.cab via Microsoft Update Metadata Service (static link n/a for 25H2)
 
 ::--------------------------------------------------------------------------------------------------------------------------------
 #:CHOICES:#  [PARAMS] indexvar "c,h,o,i,c,e,s"  [OPTIONAL]  default-index "title" fontsize backcolor forecolor winsize

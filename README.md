@@ -12,22 +12,22 @@ A versatile automation script for Windows 10 and 11 deployment that leverages Mi
 For fast, unattended operations, rename the script file to include your desired options before running it. Here are some common examples:
 
 * **Create the latest Windows 11 Pro ISO:**
-    `iso 11_24H2 pro MediaCreationTool.bat`
+    `iso 11_25H2 pro MediaCreationTool.bat`
 
 * **Automatically upgrade the current PC to the latest Windows 10:**
     `auto 22H2 MediaCreationTool.bat`
 
 * **Create an untouched, default Windows 11 USB/ISO:**
-    `def 11_24H2 MediaCreationTool.bat`
+    `def 11_25H2 MediaCreationTool.bat`
 
 * **Create a German language Windows 11 Enterprise ISO:**
-    `iso 11_24H2 enterprise de-DE MediaCreationTool.bat`
+    `iso 11_25H2 enterprise de-DE MediaCreationTool.bat`
 
 ---
 
 ## Key Features
 
-* **Universal Support**: Creates media for all Windows 10/11 versions, from 1507 to 24H2.
+* **Universal Support**: Creates media for all Windows 10/11 versions, from 1507 to 25H2.
 * **Flexible Operation**: Can be run via a simple GUI menu or completely automated through filename-based commands.
 * **Automated Media Creation**: Generate ISO or USB media with minimal user interaction.
 * **Advanced In-Place Upgrades**: Supports upgrading across different editions (e.g., Enterprise LTSC to Professional) while preserving files and applications.
@@ -58,7 +58,7 @@ For fully unattended operation, rename the `.bat` file to include the desired pa
     * `auto`: Initiates an automatic in-place upgrade.
     * `iso`: Creates an ISO image file.
 * **Configuration Keywords**:
-    * **Version**: e.g., `11_24H2`, `22H2`, `1909`.
+    * **Version**: e.g., `11_25H2`, `11_24H2`, `22H2`, `1909`.
     * **Edition**: e.g., `Enterprise`, `Professional`, `Education`.
     * **Language**: e.g., `en-US`, `de-DE`.
     * **Architecture**: `x64` or `x86`.
@@ -67,7 +67,7 @@ For fully unattended operation, rename the `.bat` file to include the desired pa
 
 **Examples:**
 
-* `auto 11_24H2 enterprise MediaCreationTool.bat`: Performs an in-place upgrade to Windows 11 24H2 Enterprise.
+* `auto 11_25H2 enterprise MediaCreationTool.bat`: Performs an in-place upgrade to Windows 11 25H2 Enterprise.
 * `iso 22H2 pro x64 MediaCreationTool.bat`: Creates an ISO for Windows 10 22H2 Professional (64-bit).
 
 ---
@@ -84,6 +84,12 @@ Presets 1-4 add the following enhancements to the created media for improved dep
 * **(Windows 11 Only)** `boot.wim` Patch: The `winsetup.dll` file within the boot image is patched to disable hardware requirement checks when performing a clean install from the bootable media.
 
 To prevent these modifications, use the **MCT Defaults** preset or add `def` to the script's filename.
+
+---
+
+## Windows 11 25H2 Notes
+
+Starting with 25H2, Microsoft no longer publishes a static `products.cab` download link — the official Media Creation Tool now resolves it per-device at install time instead. This wrapper matches that behavior: selecting `11_25H2` queries Microsoft's Update Metadata Service live and downloads the current catalog on the spot (you'll see `Fetching 25H2 products.cab from Microsoft Update Metadata Service` in the console). This needs a working internet connection at the moment you make the selection, and always pulls the latest servicing build automatically — no script update required as Microsoft ships new 25H2 cumulative builds. All other versions (24H2 and earlier) are unaffected and still use their fixed download links.
 
 ---
 
